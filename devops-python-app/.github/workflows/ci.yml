@@ -1,0 +1,37 @@
+name: CI - Python Flask App
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Package App
+        run: |
+          mkdir output
+          cp -r app/* output/
+          cp requirements.txt output/
+          tar -czvf hello-app.tar.gz -C output .
+
+      - name: Upload to JFrog
+        env:
+          JFROG_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          JFROG_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          JFROG_REPO_URL: ${{ secrets.JFROG_REPO_URL }}
+        run: |
+          curl -u $JFROG_USERNAME:$JFROG_PASSWORD -T hello-app.tar.gz "$JFROG_REPO_URL/hello-app.tar.gz"

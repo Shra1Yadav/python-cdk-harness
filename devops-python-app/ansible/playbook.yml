@@ -1,0 +1,42 @@
+---
+- name: Configure EC2 for Flask App
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Update system packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Python3 and pip
+      yum:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Ensure Flask is installed
+      pip:
+        name: flask
+        executable: pip3
+
+    - name: Create app directory
+      file:
+        path: /home/ec2-user/flask-app
+        state: directory
+
+    - name: Extract app
+      unarchive:
+        src: /home/ec2-user/hello-app.tar.gz
+        dest: /home/ec2-user/flask-app
+        remote_src: yes
+
+    - name: Install requirements
+      pip:
+        requirements: /home/ec2-user/flask-app/requirements.txt
+        executable: pip3
+
+    - name: Run Flask app
+      shell: |
+        nohup python3 /home/ec2-user/flask-app/main.py > flask.log 2>&1 &

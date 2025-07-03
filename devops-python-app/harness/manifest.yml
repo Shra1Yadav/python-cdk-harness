@@ -1,0 +1,49 @@
+pipeline:
+  name: Deploy Flask App with Ansible
+  identifier: Deploy_Flask_EC2_Dev
+  projectIdentifier: your_project
+  orgIdentifier: your_org
+  stages:
+    - stage:
+        name: Deploy to EC2
+        identifier: deploy_to_ec2
+        type: Deployment
+        spec:
+          deploymentType: SSH
+          service:
+            name: flask-service
+            identifier: flask_service
+            serviceDefinition:
+              type: SSH
+              spec:
+                artifacts:
+                  primary:
+                    type: Generic
+                    spec:
+                      connectorRef: jfrog_connector
+                      artifactPath: hello-app.tar.gz
+                      artifactDirectory: /
+          environment:
+            name: dev
+            identifier: dev
+            type: PreProduction
+            infrastructureDefinitions:
+              - identifier: ec2_ssh
+          execution:
+            steps:
+              - step:
+                  type: Command
+                  name: Extract Artifact
+                  spec:
+                    shell: Bash
+                    command: |
+                      tar -xzvf hello-app.tar.gz -C /home/ec2-user/
+
+              - step:
+                  type: Command
+                  name: Run Ansible Playbook
+                  spec:
+                    shell: Bash
+                    command: |
+                      sudo yum install -y ansible
+                      ansible-playbook -i ansible/inventory ansible/playbook.yml
