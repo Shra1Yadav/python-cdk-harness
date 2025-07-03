@@ -3,7 +3,7 @@ name: CI - Python Flask App
 on:
   push:
     branches:
-      - dev
+      - master
 
 jobs:
   build-and-upload:
